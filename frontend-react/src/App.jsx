@@ -166,13 +166,13 @@ export default function App() {
         </a>
 
         <nav className="nav-links">
-          <a href="#hero" className="nav-link">The Problem</a>
-          <a href="#workspace" className="nav-link">How It Works</a>
-          <a href="#workspace" className="nav-link">Get Verified</a>
+          <a href="#workspace" className="nav-link">Evaluation</a>
+          <a href="#workspace" className="nav-link">Hallucinations</a>
+          <a href="#leaderboard" className="nav-link">Leaderboard</a>
         </nav>
 
         <button className="btn-nav-action" onClick={handleRunEvaluation} disabled={loading}>
-          {loading ? "Evaluating…" : "Get Verified"}
+          {loading ? "Evaluating…" : "Run Evaluation"}
         </button>
       </header>
 
@@ -180,23 +180,23 @@ export default function App() {
       <section className="hero-section" id="hero">
         <div className="hero-left">
           <div className="hero-tag">
-            ● VERIFIED SKILL INTELLIGENCE &amp; EMPLOYABILITY
+            ● EMPLOYMENT LLM EVALUATION &amp; HALLUCINATION BENCHMARK
           </div>
 
           <h1 className="hero-title">
-            Every résumé runs on <span className="highlight">the honour system.</span>
+            Every employment AI runs on <span className="highlight">the trust system.</span>
           </h1>
 
           <p className="hero-sub">
-            A candidate writes "proficient in Python" and nothing checks it at the point of claim. EL-EHB analyzes what you've actually done, verifies it against a real role, and shows you exactly what's left to prove.
+            An LLM generates "compliant with Section 25F" and nothing verifies it at the point of response. EL-EHB benchmarks AI outputs against real labor law ground truths, detects legal hallucinations, and quantifies risk.
           </p>
 
           <div className="hero-cta-group">
             <button className="btn-hero-primary" onClick={handleRunEvaluation} disabled={loading}>
-              {loading ? "Running benchmark…" : "Get Verified →"}
+              {loading ? "Running benchmark…" : "Run Benchmark →"}
             </button>
-            <a href="#workspace" className="btn-hero-secondary">
-              See the problem
+            <a href="#leaderboard" className="btn-hero-secondary">
+              View Leaderboard
             </a>
           </div>
         </div>
@@ -204,13 +204,13 @@ export default function App() {
         <div className="hero-widget">
           <div className="badge-circle">
             <div className="badge-status">
-              {currentRun ? `${(currentRun.metrics.factual_consistency_score * 100).toFixed(0)}% FCS` : "CLAIMED"}
+              {currentRun ? `${(currentRun.metrics.factual_consistency_score * 100).toFixed(0)}% FCS` : "UNVERIFIED"}
             </div>
             <div className="badge-sub">
-              {currentRun ? "verified ground truth" : "not yet verified"}
+              {currentRun ? "ground truth verified" : "awaiting evaluation"}
             </div>
           </div>
-          <div className="badge-hint">hover to inspect</div>
+          <div className="badge-hint">hover to inspect metrics</div>
         </div>
       </section>
 
@@ -285,7 +285,7 @@ export default function App() {
               </>
             )}
 
-            <section className="exhibit-block">
+            <section className="exhibit-block" id="leaderboard">
               <h2 className="block-title">Leaderboard</h2>
               <Leaderboard rows={leaderboard} />
             </section>
