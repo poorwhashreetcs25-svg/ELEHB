@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EL-EHB — Employment LLM Evaluation & Hallucination Benchmark</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #050807;
+    --bg-card: #0b140f;
+    --bg-card-hover: #122119;
+    --border: #183824;
+    --border-glow: rgba(0, 255, 102, 0.3);
+    
+    --text-main: #e6f4ed;
+    --text-muted: #7ca890;
+    --text-dim: #3e5e4d;
+
+    --green-neon: #00ff66;
+    --green-glow: rgba(0, 255, 102, 0.25);
+    --green-emerald: #10b981;
+    --green-dark: #062b16;
+
+    --fail-red: #ff4d4d;
+    --fail-bg: rgba(255, 77, 77, 0.12);
+    --warn-yellow: #ffc107;
+    --warn-bg: rgba(255, 193, 7, 0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: 60px;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(0, 255, 102, 0.05) 0%, transparent 70%),
+      linear-gradient(to bottom, #050807, #070e0a);
+  }
+
+  /* Header Navigation */
+  header {
+    background: rgba(11, 20, 15, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 18px 36px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.6);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #00ff66 0%, #059669 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: #021a0d;
+    font-size: 20px;
+    box-shadow: 0 0 20px var(--green-glow);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-main);
+  }
+
+  header .sub {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  select {
+    background: #07120a;
+    color: var(--green-neon);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 18px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  select:hover, select:focus {
+    border-color: var(--green-neon);
+    box-shadow: 0 0 14px var(--green-glow);
+  }
+
+  button.primary {
+    background: linear-gradient(135deg, #00ff66 0%, #10b981 100%);
+    color: #021a0d;
+    border: none;
+    border-radius: 10px;
+    padding: 11px 24px;
+    font-size: 13px;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 0 22px var(--green-glow);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px rgba(0, 255, 102, 0.5);
+    filter: brightness(1.1);
+  }
+
+  button.primary:active {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* Main Container */
+  main {
+    max-width: 1240px;
+    margin: 36px auto;
+    padding: 0 24px;
+  }
+
+  /* Section Titles */
+  h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--green-neon);
+    margin: 40px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 16px;
+    background: var(--green-neon);
+    border-radius: 3px;
+    box-shadow: 0 0 10px var(--green-neon);
+  }
+
+  /* Metrics Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  .card:hover {
+    border-color: var(--green-neon);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 255, 102, 0.15);
+  }
+
+  .card .label {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .card .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 10px;
+    color: var(--text-main);
+  }
+
+  .card .value.ok { color: var(--green-neon); text-shadow: 0 0 14px var(--green-glow); }
+  .card .value.fail { color: var(--fail-red); text-shadow: 0 0 14px rgba(255, 77, 77, 0.3); }
+  .card .value.warn { color: var(--warn-yellow); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  th, td {
+    padding: 16px 20px;
+    font-size: 13px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    background: #06110a;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td {
+    background: rgba(0, 255, 102, 0.03);
+  }
+
+  /* Badges & Verdicts */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge.h1, .badge.h2, .badge.h3, .badge.h4, .badge.h5, .badge.h6 {
+    background: var(--fail-bg);
+    color: var(--fail-red);
+    border: 1px solid rgba(255, 77, 77, 0.3);
+  }
+
+  .pill {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pill.pass {
+    background: rgba(0, 255, 102, 0.15);
+    color: var(--green-neon);
+    border: 1px solid rgba(0, 255, 102, 0.4);
+  }
+
+  .pill.fail {
+    background: var(--fail-bg);
+    color: var(--fail-red);
+    border: 1px solid rgba(255, 77, 77, 0.4);
+  }
+
+  /* Accordion Item */
+  .item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  }
+
+  .item:hover {
+    border-color: rgba(0, 255, 102, 0.35);
+  }
+
+  .item-head {
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    background: var(--bg-card);
+  }
+
+  .item-head:hover {
+    background: var(--bg-card-hover);
+  }
+
+  .item-head .id {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-main);
+  }
+
+  .item-head .meta {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .item-body {
+    padding: 0 22px 22px;
+    display: none;
+    border-top: 1px solid var(--border);
+    background: rgba(5, 8, 7, 0.6);
+  }
+
+  .item.open .item-body { display: block; }
+
+  .response-box {
+    background: #030604;
+    border: 1px solid #14301f;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 13px;
+    margin: 16px 0;
+    color: #cde6d8;
+    font-family: 'JetBrains Mono', monospace;
+    white-space: pre-wrap;
+    line-height: 1.65;
+  }
+
+  .claim {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 13px;
+  }
+
+  .claim:last-child { border-bottom: none; }
+
+  .verdict {
+    flex-shrink: 0;
+    width: 110px;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .verdict.SUPPORTED {
+    background: rgba(0, 255, 102, 0.15);
+    color: var(--green-neon);
+    border: 1px solid rgba(0, 255, 102, 0.4);
+  }
+
+  .verdict.CONTRADICTED {
+    background: var(--fail-bg);
+    color: var(--fail-red);
+    border: 1px solid rgba(255, 77, 77, 0.4);
+  }
+
+  .verdict.UNVERIFIABLE {
+    background: var(--warn-bg);
+    color: var(--warn-yellow);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+  }
+
+  .claim-text { flex: 1; color: var(--text-main); }
+  .claim-reason { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+  .empty {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 40px;
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+  }
+
+  /* Bias Grid */
+  .bias-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+    margin-top: 16px;
+  }
+
+  .bias-cell {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .bias-cell .group {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .bias-cell .decision {
+    font-weight: 800;
+    font-size: 17px;
+    margin: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .bias-cell .decision.positive { color: var(--green-neon); }
+  .bias-cell .decision.negative { color: var(--fail-red); }
+  .bias-cell .decision.neutral { color: var(--warn-yellow); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo-icon">EL</div>
+    <div>
+      <h1>EL-EHB Dashboard</h1>
+      <div class="sub">Employment LLM Evaluation &amp; Hallucination Benchmark</div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <select id="adapterSelect">
+      <option value="mock">mock (offline demo)</option>
+      <option value="gemini">gemini (live API)</option>
+      <option value="anthropic">anthropic (live API)</option>
+    </select>
+    <button class="primary" id="runBtn">
+      <span>▶</span> Run Evaluation
+    </button>
+  </div>
+</header>
+
+<main>
+
+  <h2>Latest Run</h2>
+  <div class="grid" id="metricGrid">
+    <div class="card"><div class="label">Factual Consistency</div><div class="value" id="m-fcs">—</div></div>
+    <div class="card"><div class="label">Hallucination Rate</div><div class="value" id="m-hall">—</div></div>
+    <div class="card"><div class="label">Citation Validity</div><div class="value" id="m-cite">—</div></div>
+    <div class="card"><div class="label">Abstention Quality</div><div class="value" id="m-abst">—</div></div>
+  </div>
+
+  <h2>Failure Distribution</h2>
+  <table id="taxonomyTable">
+    <thead><tr><th>Class</th><th>Description</th><th>Count</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Bias Audit — Resume Screening <span id="biasPill"></span></h2>
+  <div id="biasSection"><div class="empty">Run an evaluation to see bias audit results.</div></div>
+
+  <h2>Per-Item Claim Drill-Down</h2>
+  <div id="itemsSection"><div class="empty">Run an evaluation to see item-level results.</div></div>
+
+  <h2>Leaderboard</h2>
+  <table>
+    <thead><tr><th>Run</th><th>Model</th><th>FCS</th><th>Hallucination Rate</th><th>Abstention Quality</th></tr></thead>
+    <tbody id="leaderboardBody"></tbody>
+  </table>
+
+</main>
+
+<script>
+const API = "http://localhost:8000";
+
+const H_LABELS = {
+  H1: "Intrinsic — contradicts source",
+  H2: "Extrinsic — unsupported addition",
+  H3: "Legal fabrication",
+  H4: "Jurisdiction drift",
+  H5: "Temporal staleness",
+  H6: "Overconfident non-abstention",
+};
+
+async function runEvaluation() {
+  const btn = document.getElementById("runBtn");
+  const adapter = document.getElementById("adapterSelect").value;
+  btn.disabled = true;
+  btn.innerHTML = `<span>⏳</span> Running…`;
+  try {
+    const res = await fetch(`${API}/runs?adapter=${adapter}`, { method: "POST" });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    renderMetrics(data.metrics);
+    renderBias(data.bias);
+    await loadFullRun(data.run_id);
+    await loadLeaderboard();
+  } catch (err) {
+    alert("Run failed: " + err.message + "\n\nIs the API running at " + API + "?");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<span>▶</span> Run Evaluation`;
+  }
+}
+
+function renderMetrics(m) {
+  document.getElementById("m-fcs").textContent = (m.factual_consistency_score * 100).toFixed(1) + "%";
+  document.getElementById("m-fcs").className = "value " + (m.factual_consistency_score > 0.7 ? "ok" : "fail");
+  document.getElementById("m-hall").textContent = (m.hallucination_rate * 100).toFixed(1) + "%";
+  document.getElementById("m-hall").className = "value " + (m.hallucination_rate < 0.3 ? "ok" : "fail");
+  document.getElementById("m-cite").textContent = m.citation_validity_rate != null ? (m.citation_validity_rate * 100).toFixed(0) + "%" : "n/a";
+  document.getElementById("m-abst").textContent = (m.abstention_quality >= 0 ? "+" : "") + m.abstention_quality.toFixed(2);
+
+  const tbody = document.querySelector("#taxonomyTable tbody");
+  tbody.innerHTML = "";
+  for (const [cls, count] of Object.entries(m.failure_distribution)) {
+    if (!count) continue;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><span class="badge ${cls.toLowerCase()}">${cls}</span></td><td>${H_LABELS[cls]}</td><td>${count}</td>`;
+    tbody.appendChild(tr);
+  }
+  if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="3" class="empty">No failures detected</td></tr>`;
+}
+
+function renderBias(bias) {
+  const section = document.getElementById("biasSection");
+  const pill = document.getElementById("biasPill");
+  if (!bias) { section.innerHTML = `<div class="empty">No bias-eligible item in this run.</div>`; pill.innerHTML = ""; return; }
+
+  const ff = bias.four_fifths;
+  pill.innerHTML = `<span class="pill ${ff.passes ? 'pass' : 'fail'}">4/5 ratio ${ff.ratio.toFixed(2)} — ${ff.passes ? "PASS" : "FAIL"}</span>`;
+
+  section.innerHTML = `<div class="bias-row">` + bias.variants.map(v => `
+    <div class="bias-cell">
+      <div class="group">${v.group.replace(/_/g, " ")} — ${v.name}</div>
+      <div class="decision ${v.decision}">${v.decision.toUpperCase()}</div>
+      <div style="color:var(--text-muted); font-size:12px; margin-top: 6px;">${v.response}</div>
+    </div>
+  `).join("") + `</div>`;
+}
+
+async function loadFullRun(runId) {
+  const res = await fetch(`${API}/runs/${runId}`);
+  const run = await res.json();
+  const section = document.getElementById("itemsSection");
+  section.innerHTML = "";
+
+  for (const item of run.results) {
+    const bad = item.claims.filter(c => c.verdict !== "SUPPORTED").length;
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerHTML = `
+      <div class="item-head" onclick="this.parentElement.classList.toggle('open')">
+        <div>
+          <div class="id">${item.item_id} <span style="color:var(--text-muted); font-weight:400;">— ${item.task}</span></div>
+          <div class="meta">${item.jurisdiction} ${item.abstained ? "· abstained" : ""}</div>
+        </div>
+        <div class="meta">${bad ? bad + " issue(s)" : (item.claims.length ? "all supported" : "n/a")}</div>
+      </div>
+      <div class="item-body">
+        <div class="response-box">${item.response}</div>
+        ${item.claims.map(c => `
+          <div class="claim">
+            <div class="verdict ${c.verdict}">${c.verdict}${c.h_class ? " · " + c.h_class : ""}</div>
+            <div class="claim-text">
+              ${c.text}
+              ${c.reason ? `<div class="claim-reason">${c.reason}</div>` : ""}
+            </div>
+          </div>
+        `).join("") || `<div class="empty">No claims extracted (abstention or empty item).</div>`}
+      </div>
+    `;
+    section.appendChild(div);
+  }
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(`${API}/leaderboard`);
+    const rows = await res.json();
+    const tbody = document.getElementById("leaderboardBody");
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>#${r.run_id}</td>
+        <td>${r.model}</td>
+        <td>${(r.fcs * 100).toFixed(1)}%</td>
+        <td>${(r.hallucination_rate * 100).toFixed(1)}%</td>
+        <td>${r.abstention_quality.toFixed(2)}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="5" class="empty">No runs yet</td></tr>`;
+  } catch(e) {
+    console.log("Could not load leaderboard", e);
+  }
+}
+
+document.getElementById("runBtn").addEventListener("click", runEvaluation);
+loadLeaderboard();
+</script>
+</body>
+</html>

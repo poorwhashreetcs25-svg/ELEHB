@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Secrets
+.env
+*.env
+backend/.env
+
+# Database and cache
+*.db
+*.sqlite
+benchmark/.gemini_cache.json
+
+# Node / React
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+run_report.json
