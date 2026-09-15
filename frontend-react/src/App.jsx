@@ -161,8 +161,8 @@ export default function App() {
       {/* ---------------- Top Navbar ---------------- */}
       <header className="top-nav">
         <a href="#hero" className="brand-logo">
-          <div className="brand-badge">P</div>
-          <span className="brand-title">PROOFFOLIO</span>
+          <div className="brand-badge">E</div>
+          <span className="brand-title">EL-EHB</span>
         </a>
 
         <nav className="nav-links">
@@ -188,7 +188,7 @@ export default function App() {
           </h1>
 
           <p className="hero-sub">
-            A candidate writes "proficient in Python" and nothing checks it at the point of claim. ProofFolio analyzes what you've actually done, verifies it against a real role, and shows you exactly what's left to prove.
+            A candidate writes "proficient in Python" and nothing checks it at the point of claim. EL-EHB analyzes what you've actually done, verifies it against a real role, and shows you exactly what's left to prove.
           </p>
 
           <div className="hero-cta-group">
