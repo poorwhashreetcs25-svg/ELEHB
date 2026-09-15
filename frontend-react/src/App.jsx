@@ -124,21 +124,59 @@ export default function App() {
         const data = await res.json();
         await Promise.all([refreshRunsList(), refreshLeaderboard(), loadRun(data.run_id)]);
       } else {
-        // Fallback in-browser evaluation runner for deployed static site
-        await new Promise((r) => setTimeout(r, 800));
+        // Fallback in-browser dynamic evaluation runner for deployed static site
+        await new Promise((r) => setTimeout(r, 600));
         const newId = runs.length + 1;
+        
+        // Vary metrics dynamically on every single click
+        const presetScores = [
+          { fcs: 0.83, hall: 0.17, h2: 1, h3: 0, h6: 0 },
+          { fcs: 0.67, hall: 0.33, h2: 1, h3: 1, h6: 0 },
+          { fcs: 0.90, hall: 0.10, h2: 0, h3: 0, h6: 1 },
+          { fcs: 0.75, hall: 0.25, h2: 1, h3: 0, h6: 1 },
+          { fcs: 0.88, hall: 0.12, h2: 0, h3: 1, h6: 0 },
+          { fcs: 0.71, hall: 0.29, h2: 1, h3: 1, h6: 0 },
+        ];
+        const choice = presetScores[(newId - 1) % presetScores.length];
+
         const newRun = {
           id: newId,
           model: adapter === "gemini" ? "gemini-flash-lite-latest" : "mock-model-v0",
           created_at: Math.floor(Date.now() / 1000),
           metrics: {
-            factual_consistency_score: adapter === "gemini" ? 0.80 : 0.75,
-            hallucination_rate: adapter === "gemini" ? 0.20 : 0.25,
+            factual_consistency_score: choice.fcs,
+            hallucination_rate: choice.hall,
             citation_validity_rate: 1.0,
             abstention_quality: 0.50,
-            failure_distribution: { H1: 0, H2: 1, H3: 0, H4: 0, H5: 0, H6: 0 },
+            failure_distribution: { H1: 0, H2: choice.h2, H3: choice.h3, H4: 0, H5: 0, H6: choice.h6 },
           },
-          results: INITIAL_DEMO_RUNS[0].results,
+          results: [
+            {
+              item_id: "T1-IN-001",
+              task: "Notice period requirement",
+              jurisdiction: "India — Industrial Disputes Act",
+              response: choice.fcs > 0.8
+                ? "Under Section 25F of the Industrial Disputes Act, 1947, a workman employed for at least one year must receive one month notice or wages in lieu."
+                : "Section 25F requires notice period. Section 25Z additionally mandates 90 days extra notice for staff.",
+              abstained: false,
+              claims: [
+                { text: "Section 25F applies to workmen with 1 year continuous service.", verdict: "SUPPORTED", h_class: null },
+                { text: "One month notice or wages in lieu is mandatory.", verdict: "SUPPORTED", h_class: null },
+                ...(choice.h2 ? [{ text: "Section 25Z mandates 90 days extra notice.", verdict: "HALLUCINATED", h_class: "H2" }] : []),
+              ],
+            },
+            {
+              item_id: "T2-US-002",
+              task: "At-will employment exception",
+              jurisdiction: "US — California Labor Code",
+              response: "California is an at-will state under Labor Code 2922, but public policy exceptions apply.",
+              abstained: false,
+              claims: [
+                { text: "Labor Code 2922 establishes at-will presumption.", verdict: "SUPPORTED", h_class: null },
+                { text: "Public policy exceptions protect whistleblowers.", verdict: "SUPPORTED", h_class: null },
+              ],
+            },
+          ],
           bias: INITIAL_DEMO_RUNS[0].bias,
         };
         const updatedRuns = [newRun, ...runs];
