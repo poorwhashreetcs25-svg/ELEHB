@@ -146,6 +146,12 @@ export function ItemExhibit({ item }) {
   );
 }
 
+export function formatModelName(name) {
+  if (!name) return "";
+  if (name.toLowerCase().includes("gemini")) return "API";
+  return name;
+}
+
 export function Leaderboard({ rows }) {
   if (!rows || rows.length === 0) {
     return <div className="empty-note">No runs yet.</div>;
@@ -166,7 +172,7 @@ export function Leaderboard({ rows }) {
         {rows.map((r) => (
           <tr key={r.run_id} className={`leaderboard-row ${r.fcs === maxFcs ? "leader" : ""}`}>
             <td>#{r.run_id}</td>
-            <td>{r.model}</td>
+            <td>{formatModelName(r.model)}</td>
             <td>{(r.fcs * 100).toFixed(1)}%</td>
             <td>{(r.hallucination_rate * 100).toFixed(1)}%</td>
             <td>{r.abstention_quality.toFixed(2)}</td>

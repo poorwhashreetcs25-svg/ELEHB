@@ -5,6 +5,7 @@ import {
   BiasExhibit,
   ItemExhibit,
   Leaderboard,
+  formatModelName,
 } from "./components.jsx";
 
 const API = "http://localhost:8000";
@@ -69,7 +70,7 @@ export default function App() {
           <div className="field-label">Model under test</div>
           <select className="control" value={adapter} onChange={(e) => setAdapter(e.target.value)}>
             <option value="mock">mock (offline demo)</option>
-            <option value="gemini">gemini (live API)</option>
+            <option value="gemini">API</option>
           </select>
           <button className="run-btn" onClick={handleRunEvaluation} disabled={loading}>
             {loading ? "⏳ Running evaluation…" : "▶ Run evaluation"}
@@ -87,7 +88,7 @@ export default function App() {
               className={`docket-item ${currentRun?.id === r.id ? "active" : ""}`}
               onClick={() => loadRun(r.id)}
             >
-              <div className="rid">#{r.id} · {r.model}</div>
+              <div className="rid">#{r.id} · {formatModelName(r.model)}</div>
               <div className="rmeta">
                 FCS {(r.metrics.factual_consistency_score * 100).toFixed(0)}%
               </div>
@@ -101,7 +102,7 @@ export default function App() {
           <h1>{currentRun ? `Run #${currentRun.id}` : "No run selected"}</h1>
           <div className="filed">
             {currentRun
-              ? `${currentRun.model} · ${new Date(currentRun.created_at * 1000).toLocaleString()}`
+              ? `${formatModelName(currentRun.model)} · ${new Date(currentRun.created_at * 1000).toLocaleString()}`
               : "Run an evaluation from the sidebar to begin"}
           </div>
         </div>
