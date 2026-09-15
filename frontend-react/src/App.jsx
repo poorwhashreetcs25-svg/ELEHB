@@ -271,10 +271,7 @@ export default function App() {
                   <FailureTable metrics={currentRun.metrics} />
                 </section>
 
-                <section className="exhibit-block">
-                  <h2 className="block-title">Bias audit — resume screening, name swapped only</h2>
-                  <BiasExhibit bias={currentRun.bias} />
-                </section>
+
 
                 <section className="exhibit-block">
                   <h2 className="block-title">Per-item claim exhibits</h2>
