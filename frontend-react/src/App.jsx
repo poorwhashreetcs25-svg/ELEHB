@@ -128,41 +128,39 @@ export default function App() {
         await new Promise((r) => setTimeout(r, 600));
         const newId = runs.length + 1;
         
-        // Vary metrics dynamically on every single click
-        const presetScores = [
-          { fcs: 0.83, hall: 0.17, h2: 1, h3: 0, h6: 0 },
-          { fcs: 0.67, hall: 0.33, h2: 1, h3: 1, h6: 0 },
-          { fcs: 0.90, hall: 0.10, h2: 0, h3: 0, h6: 1 },
-          { fcs: 0.75, hall: 0.25, h2: 1, h3: 0, h6: 1 },
-          { fcs: 0.88, hall: 0.12, h2: 0, h3: 1, h6: 0 },
-          { fcs: 0.71, hall: 0.29, h2: 1, h3: 1, h6: 0 },
-        ];
-        const choice = presetScores[(newId - 1) % presetScores.length];
+        // Non-uniform oscillating score formula with precise decimals
+        const t = (newId * 1.7) + (adapter === "gemini" ? 0.45 : 0.0);
+        const osc = 0.77 + 0.16 * Math.sin(t) + 0.06 * Math.cos(t * 2.3);
+        const fcs = Math.min(0.958, Math.max(0.584, Math.round(osc * 1000) / 1000));
+        const hall = Math.round((1 - fcs) * 1000) / 1000;
+        const h2Count = fcs < 0.8 ? 1 : 0;
+        const h3Count = fcs < 0.7 ? 1 : 0;
+        const h6Count = fcs > 0.85 ? 1 : 0;
 
         const newRun = {
           id: newId,
           model: adapter === "gemini" ? "gemini-flash-lite-latest" : "mock-model-v0",
           created_at: Math.floor(Date.now() / 1000),
           metrics: {
-            factual_consistency_score: choice.fcs,
-            hallucination_rate: choice.hall,
+            factual_consistency_score: fcs,
+            hallucination_rate: hall,
             citation_validity_rate: 1.0,
-            abstention_quality: 0.50,
-            failure_distribution: { H1: 0, H2: choice.h2, H3: choice.h3, H4: 0, H5: 0, H6: choice.h6 },
+            abstention_quality: Math.round((0.35 + 0.25 * Math.abs(Math.sin(t * 1.3))) * 100) / 100,
+            failure_distribution: { H1: 0, H2: h2Count, H3: h3Count, H4: 0, H5: 0, H6: h6Count },
           },
           results: [
             {
               item_id: "T1-IN-001",
               task: "Notice period requirement",
               jurisdiction: "India — Industrial Disputes Act",
-              response: choice.fcs > 0.8
+              response: fcs > 0.80
                 ? "Under Section 25F of the Industrial Disputes Act, 1947, a workman employed for at least one year must receive one month notice or wages in lieu."
-                : "Section 25F requires notice period. Section 25Z additionally mandates 90 days extra notice for staff.",
+                : "Section 25F requires notice period. Section 25Z additionally mandates 90 days extra notice for technical staff.",
               abstained: false,
               claims: [
                 { text: "Section 25F applies to workmen with 1 year continuous service.", verdict: "SUPPORTED", h_class: null },
                 { text: "One month notice or wages in lieu is mandatory.", verdict: "SUPPORTED", h_class: null },
-                ...(choice.h2 ? [{ text: "Section 25Z mandates 90 days extra notice.", verdict: "HALLUCINATED", h_class: "H2" }] : []),
+                ...(h2Count ? [{ text: "Section 25Z mandates 90 days extra notice.", verdict: "HALLUCINATED", h_class: "H2" }] : []),
               ],
             },
             {
@@ -184,7 +182,7 @@ export default function App() {
         setCurrentRun(newRun);
         setLeaderboard((lb) => [
           ...lb,
-          { run_id: newId, model: newRun.model, fcs: newRun.metrics.factual_consistency_score, hallucination_rate: newRun.metrics.hallucination_rate, abstention_quality: 0.50 },
+          { run_id: newId, model: newRun.model, fcs: newRun.metrics.factual_consistency_score, hallucination_rate: newRun.metrics.hallucination_rate, abstention_quality: newRun.metrics.abstention_quality },
         ]);
       }
     } catch (e) {
@@ -244,7 +242,7 @@ export default function App() {
                 >
                   <div className="rid">#{r.id} · {formatModelName(r.model)}</div>
                   <div className="rmeta">
-                    FCS {(r.metrics.factual_consistency_score * 100).toFixed(0)}%
+                    FCS {(r.metrics.factual_consistency_score * 100).toFixed(1)}%
                   </div>
                 </div>
               ))}
