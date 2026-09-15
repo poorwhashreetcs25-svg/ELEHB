@@ -157,85 +157,141 @@ export default function App() {
   }
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="wordmark">
-          EL-EHB
-          <small>Employment LLM evaluation &amp; hallucination benchmark</small>
-        </div>
+    <div className="page-wrapper">
+      {/* ---------------- Top Navbar ---------------- */}
+      <header className="top-nav">
+        <a href="#hero" className="brand-logo">
+          <div className="brand-badge">P</div>
+          <span className="brand-title">PROOFFOLIO</span>
+        </a>
 
-        <div>
-          <div className="field-label">Model under test</div>
-          <select className="control" value={adapter} onChange={(e) => setAdapter(e.target.value)}>
-            <option value="mock">mock (offline demo)</option>
-            <option value="gemini">API</option>
-          </select>
-          <button className="run-btn" onClick={handleRunEvaluation} disabled={loading}>
-            {loading ? "⏳ Running evaluation…" : "▶ Run evaluation"}
-          </button>
-        </div>
+        <nav className="nav-links">
+          <a href="#hero" className="nav-link">The Problem</a>
+          <a href="#workspace" className="nav-link">How It Works</a>
+          <a href="#workspace" className="nav-link">Get Verified</a>
+        </nav>
 
-        {error && <div className="err-box">{error}</div>}
+        <button className="btn-nav-action" onClick={handleRunEvaluation} disabled={loading}>
+          {loading ? "Evaluating…" : "Get Verified"}
+        </button>
+      </header>
 
-        <div className="docket">
-          <div className="docket-title">Run history</div>
-          {runs.length === 0 && <div className="empty-note">No runs yet.</div>}
-          {runs.map((r) => (
-            <div
-              key={r.id}
-              className={`docket-item ${currentRun?.id === r.id ? "active" : ""}`}
-              onClick={() => loadRun(r.id)}
-            >
-              <div className="rid">#{r.id} · {formatModelName(r.model)}</div>
-              <div className="rmeta">
-                FCS {(r.metrics.factual_consistency_score * 100).toFixed(0)}%
-              </div>
-            </div>
-          ))}
-        </div>
-      </aside>
+      {/* ---------------- Hero Section ---------------- */}
+      <section className="hero-section" id="hero">
+        <div className="hero-left">
+          <div className="hero-tag">
+            ● VERIFIED SKILL INTELLIGENCE &amp; EMPLOYABILITY
+          </div>
 
-      <main className="exhibit-room">
-        <div className="case-header">
-          <h1>{currentRun ? `Run #${currentRun.id}` : "No run selected"}</h1>
-          <div className="filed">
-            {currentRun
-              ? `${formatModelName(currentRun.model)} · ${new Date(currentRun.created_at * 1000).toLocaleString()}`
-              : "Run an evaluation from the sidebar to begin"}
+          <h1 className="hero-title">
+            Every résumé runs on <span className="highlight">the honour system.</span>
+          </h1>
+
+          <p className="hero-sub">
+            A candidate writes "proficient in Python" and nothing checks it at the point of claim. ProofFolio analyzes what you've actually done, verifies it against a real role, and shows you exactly what's left to prove.
+          </p>
+
+          <div className="hero-cta-group">
+            <button className="btn-hero-primary" onClick={handleRunEvaluation} disabled={loading}>
+              {loading ? "Running benchmark…" : "Get Verified →"}
+            </button>
+            <a href="#workspace" className="btn-hero-secondary">
+              See the problem
+            </a>
           </div>
         </div>
 
-        {currentRun && (
-          <>
-            <section className="exhibit-block">
-              <h2 className="block-title">Metrics</h2>
-              <MetricsLedger metrics={currentRun.metrics} />
-            </section>
+        <div className="hero-widget">
+          <div className="badge-circle">
+            <div className="badge-status">
+              {currentRun ? `${(currentRun.metrics.factual_consistency_score * 100).toFixed(0)}% FCS` : "CLAIMED"}
+            </div>
+            <div className="badge-sub">
+              {currentRun ? "verified ground truth" : "not yet verified"}
+            </div>
+          </div>
+          <div className="badge-hint">hover to inspect</div>
+        </div>
+      </section>
 
-            <section className="exhibit-block">
-              <h2 className="block-title">Failure distribution</h2>
-              <FailureTable metrics={currentRun.metrics} />
-            </section>
+      {/* ---------------- Workspace Section ---------------- */}
+      <div className="app-container" id="workspace">
+        <div className="workspace-grid">
+          <aside className="sidebar">
+            <div>
+              <div className="sidebar-heading">Model under test</div>
+              <select className="control" value={adapter} onChange={(e) => setAdapter(e.target.value)}>
+                <option value="mock">mock (offline demo)</option>
+                <option value="gemini">API</option>
+              </select>
+              <button className="run-btn" onClick={handleRunEvaluation} disabled={loading}>
+                {loading ? "⏳ Running evaluation…" : "▶ Run evaluation"}
+              </button>
+            </div>
 
-            <section className="exhibit-block">
-              <h2 className="block-title">Bias audit — resume screening, name swapped only</h2>
-              <BiasExhibit bias={currentRun.bias} />
-            </section>
+            {error && <div className="err-box">{error}</div>}
 
-            <section className="exhibit-block">
-              <h2 className="block-title">Per-item claim exhibits</h2>
-              {currentRun.results.map((item) => (
-                <ItemExhibit item={item} key={item.item_id} />
+            <div className="docket">
+              <div className="docket-title">Run history</div>
+              {runs.length === 0 && <div className="empty-note">No runs yet.</div>}
+              {runs.map((r) => (
+                <div
+                  key={r.id}
+                  className={`docket-item ${currentRun?.id === r.id ? "active" : ""}`}
+                  onClick={() => loadRun(r.id)}
+                >
+                  <div className="rid">#{r.id} · {formatModelName(r.model)}</div>
+                  <div className="rmeta">
+                    FCS {(r.metrics.factual_consistency_score * 100).toFixed(0)}%
+                  </div>
+                </div>
               ))}
-            </section>
-          </>
-        )}
+            </div>
+          </aside>
 
-        <section className="exhibit-block">
-          <h2 className="block-title">Leaderboard</h2>
-          <Leaderboard rows={leaderboard} />
-        </section>
-      </main>
+          <main className="exhibit-room">
+            <div className="case-header">
+              <h1>{currentRun ? `Run #${currentRun.id}` : "No run selected"}</h1>
+              <div className="filed">
+                {currentRun
+                  ? `${formatModelName(currentRun.model)} · ${new Date(currentRun.created_at * 1000).toLocaleString()}`
+                  : "Run an evaluation from the sidebar to begin"}
+              </div>
+            </div>
+
+            {currentRun && (
+              <>
+                <section className="exhibit-block">
+                  <h2 className="block-title">Metrics</h2>
+                  <MetricsLedger metrics={currentRun.metrics} />
+                </section>
+
+                <section className="exhibit-block">
+                  <h2 className="block-title">Failure distribution</h2>
+                  <FailureTable metrics={currentRun.metrics} />
+                </section>
+
+                <section className="exhibit-block">
+                  <h2 className="block-title">Bias audit — resume screening, name swapped only</h2>
+                  <BiasExhibit bias={currentRun.bias} />
+                </section>
+
+                <section className="exhibit-block">
+                  <h2 className="block-title">Per-item claim exhibits</h2>
+                  {currentRun.results.map((item) => (
+                    <ItemExhibit item={item} key={item.item_id} />
+                  ))}
+                </section>
+              </>
+            )}
+
+            <section className="exhibit-block">
+              <h2 className="block-title">Leaderboard</h2>
+              <Leaderboard rows={leaderboard} />
+            </section>
+          </main>
+        </div>
+      </div>
     </div>
   );
 }
