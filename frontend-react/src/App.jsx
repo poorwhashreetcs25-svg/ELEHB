@@ -176,43 +176,7 @@ export default function App() {
         </button>
       </header>
 
-      {/* ---------------- Hero Section ---------------- */}
-      <section className="hero-section" id="hero">
-        <div className="hero-left">
-          <div className="hero-tag">
-            ● EMPLOYMENT LLM EVALUATION &amp; HALLUCINATION BENCHMARK
-          </div>
 
-          <h1 className="hero-title">
-            Every employment AI runs on <span className="highlight">the trust system.</span>
-          </h1>
-
-          <p className="hero-sub">
-            An LLM generates "compliant with Section 25F" and nothing verifies it at the point of response. EL-EHB benchmarks AI outputs against real labor law ground truths, detects legal hallucinations, and quantifies risk.
-          </p>
-
-          <div className="hero-cta-group">
-            <button className="btn-hero-primary" onClick={handleRunEvaluation} disabled={loading}>
-              {loading ? "Running benchmark…" : "Run Benchmark →"}
-            </button>
-            <a href="#leaderboard" className="btn-hero-secondary">
-              View Leaderboard
-            </a>
-          </div>
-        </div>
-
-        <div className="hero-widget">
-          <div className="badge-circle">
-            <div className="badge-status">
-              {currentRun ? `${(currentRun.metrics.factual_consistency_score * 100).toFixed(0)}% FCS` : "UNVERIFIED"}
-            </div>
-            <div className="badge-sub">
-              {currentRun ? "ground truth verified" : "awaiting evaluation"}
-            </div>
-          </div>
-          <div className="badge-hint">hover to inspect metrics</div>
-        </div>
-      </section>
 
       {/* ---------------- Workspace Section ---------------- */}
       <div className="app-container" id="workspace">
